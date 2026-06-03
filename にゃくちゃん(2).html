@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>にゃくOS Ultimate FINAL</title>
+
+<script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tonejs/midi/build/Midi.min.js"></script>
+
+<style>
+body{
+    margin:0;
+    background:#ffe6ff;
+    color:#4a004a;
+    font-family:sans-serif;
+    overflow-x:hidden;
+    transition:0.4s;
+    min-height:100vh;
+}
+
+header{
+    background:linear-gradient(90deg,purple,hotpink);
+    color:white;
+    text-align:center;
+    padding:20px;
+    font-size:42px;
+    font-weight:bold;
+    text-shadow:2px 2px black;
+}
+
+.marquee{
+    background:yellow;
+    color:red;
+    font-size:28px;
+    padding:10px;
+    font-weight:bold;
+}
+
+.box{
+    width:340px;
+    margin:20px auto;
+    background:white;
+    border-radius:15px;
+    padding:15px;
+    box-shadow:0 0 15px rgba(0,0,0,0.3);
+    position:relative;
+    text-align:center;
+    /* 重力崩壊時のアニメーションを滑らかにするために追加 */
+    transition: transform 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045), background 0.4s;
+}
+
+button{
+    padding:10px 15px;
+    margin:5px;
+    border:none;
+    border-radius:10px;
+    background:pink;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+button:hover{
+    background:hotpink;
+    color:white;
+}
+
+.mainImg{
+    width:220px;
+    border-radius:15px;
+    box-shadow:0 0 10px gray;
+    margin:5px;
+}
+
+.fake-window{
+    position:absolute;
+    /* ドラッグ機能を正常に動作させるため初期位置の基準を追加 */
+    top: 0;
+    left: 0;
+    width:180px;
+    background:white;
+    border:3px solid black;
+    border-radius:10px;
+    overflow:hidden;
+    z-index:999;
+    cursor: move;
+}
+
+.fake-title{
+    background:#3399ff;
+    color:white;
+    padding:5px;
+    font-size:12px;
+    user-select: none;
+}
+
+.fake-content{
+    padding:20px;
+    font-size:20px;
+    font-weight:bold;
+    color:red;
+    user-select: none;
+}
+
+.glitch{
+    animation:shake 0.08s infinite;
+}
+
+@keyframes shake{
+0%{transform:translate(0px,0px);}
+25%{transform:translate(2px,-2px);}
+50%{transform:translate(-2px,2px);}
+75%{transform:translate(2px,2px);}
+100%{transform:translate(0px,0px);}
+}
+
+.crt::before{
+    content:"";
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:
+    repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.15),
+        rgba(0,0,0,0.15) 2px,
+        transparent 2px,
+        transparent 4px
+    );
+    pointer-events:none;
+    z-index:9999;
+}
+
+.rotate{
+    animation:spin 6s linear infinite;
+}
+
+@keyframes spin{
+from{transform:rotate(0deg);}
+to{transform:rotate(360deg);}
+}
+
+#dvd{
+    position:fixed;
+    width:140px;
+    height:80px;
+    background:black;
+    color:white;
+    display:none;
+    justify-content:center;
+    align-items:center;
+    border-radius:15px;
+    font-size:30px;
+    font-weight:bold;
+    z-index:9990;
+}
+
+.noise{
+    position:fixed;
+    width:100%;
+    height:100%;
+    top:0;
+    left:0;
+    background:url("https://media.tenor.com/7vEAO8bQx2EAAAAM/static.gif");
+    opacity:0.15;
+    display:none;
+    pointer-events:none;
+    z-index:9998;
+}
+
+.bouncer{
+    position:fixed;
+    width:80px;
+    height:80px;
+    border-radius:50%;
+    pointer-events:none;
+    z-index:998;
+}
+
+.popup{
+    position:fixed;
+    background:white;
+    border:3px solid red;
+    padding:10px;
+    border-radius:10px;
+    z-index:15000;
+    font-weight:bold;
+    pointer-events: none;
+}
+
+.bsod{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:#0000aa;
+    color:white;
+    z-index:30000;
+    display:none;
+    padding:40px;
+    box-sizing: border-box;
+}
+
+.trail{
+    position:absolute;
+    pointer-events:none;
+    font-weight:bold;
+    z-index: 20000;
+    animation:fade 1s forwards;
+}
+
+@keyframes fade{
+0%{
+opacity:1;
+transform:translateY(0px);
+}
+100%{
+opacity:0;
+transform:translateY(-50px);
+}
+}
+</style>
+</head>
+
+<body>
+
+<div class="marquee">
+<marquee scrollamount="12">
+🌈 にゃくOS Ultimate FINALへようこそ！！！！！！ 😸☁️💻🌈
+</marquee>
+</div>
+
+<header>
+にゃくOS Ultimate FINAL
+</header>
+
+<div class="box">
+<h2>😸 にゃくちゃん帝国</h2>
+
+<div id="imgArea">
+<img
+class="mainImg"
+src="https://media1.tenor.com/m/SFsmQdwxd8YAAAAd/boykisser-dance.gif"
+>
+</div>
+
+<br><br>
+
+<input type="file" id="imgFile" accept="image/*" multiple>
+</div>
+
+<div class="box">
+<h2>🎵 音楽</h2>
+
+<input type="file" id="musicFile" accept=".mp3,.mid,.midi">
+
+<br><br>
+
+<button onclick="playMusic()">にゃ再生</button>
+<button onclick="stopMusic()">にゃ停止</button>
+
+<p id="status">まだ音楽なし</p>
+</div>
+
+<div class="box">
+<h2>🌈 モード</h2>
+
+<button onclick="toggleChaos()">カオス</button>
+<button onclick="toggleCRT()">CRT</button>
+<button onclick="toggleRotate()">回転</button>
+<button onclick="toggleDVD()">DVD</button>
+<button onclick="toggleNoise()">砂嵐</button>
+<button onclick="spawnNyaku()">大量発生</button>
+<button onclick="makeWindows()">ウィンドウ</button>
+<button onclick="popupMode()">文字化け</button>
+<button onclick="fakeBSOD()">ブルスク</button>
+<button onclick="toggleGravity()">重力崩壊</button>
+<button onclick="clearAll()">掃除</button>
+
+<br><br>
+
+<label>🐱 増殖量</label>
+<input type="range" min="1" max="50" value="10" id="spawnCount">
+</div>
+
+<div class="box">
+<h2>💻 システム</h2>
+
+<p>OS: にゃくOS Ultimate FINAL</p>
+<p>GPU: RTX 4060 (暇)</p>
+<p>ChromeOS感: ON</p>
+<p>WALL.exe: ❌</p>
+</div>
+
+<div id="dvd">DVD</div>
+
+<div class="noise" id="noise"></div>
+
+<div class="bsod" id="bsod">
+<h1>:(</h1>
+<p>にゃくOS が問題を検出しました</p>
+<p>WALL.exe は既に削除済みです</p>
+
+<button onclick="closeBSOD()">
+復帰
+</button>
+</div>
+
+<script>
+let chaos=false;
+let gravity=false;
+let dvdMode=false;
+let chaosLoop=null;
+
+let mp3Audio=null;
+let midiData=null;
+let midiTimeouts=[];
+
+let dvdX=100;
+let dvdY=100;
+let dvdDX=4;
+let dvdDY=3;
+
+let selectedImages=[
+"https://media1.tenor.com/m/SFsmQdwxd8YAAAAd/boykisser-dance.gif"
+];
+
+const synth=new Tone.PolySynth(Tone.Synth,{
+oscillator:{type:"square"}
+}).toDestination();
+
+const words=[
+"にゃ！",
+"帝国",
+"バグ",
+"😸",
+"ChromeOS",
+"RTX"
+];
+
+document
+.getElementById("imgFile")
+.addEventListener("change",(e)=>{
+
+const files=[...e.target.files].slice(0,3);
+
+if(files.length===0)return;
+
+const area=document.getElementById("imgArea");
+
+area.innerHTML="";
+selectedImages=[];
+
+files.forEach(file=>{
+
+const reader=new FileReader();
+
+reader.onload=(ev)=>{
+
+selectedImages.push(ev.target.result);
+
+const img=document.createElement("img");
+
+img.src=ev.target.result;
+img.className="mainImg";
+
+area.appendChild(img);
+
+};
+
+reader.readAsDataURL(file);
+
+});
+});
+
+document
+.getElementById("musicFile")
+.addEventListener("change",async(e)=>{
+
+stopMusic();
+
+const file=e.target.files[0];
+
+if(!file)return;
+
+const name=file.name.toLowerCase();
+
+if(name.endsWith(".mp3")){
+
+mp3Audio=new Audio(
+URL.createObjectURL(file)
+);
+
+mp3Audio.loop=true;
+
+document
+.getElementById("status")
+.innerText="MP3準備完了";
+
+}
+
+if(
+name.endsWith(".mid")
+||
+name.endsWith(".midi")
+){
+
+const buffer=
+await file.arrayBuffer();
+
+midiData=
+new Midi(buffer);
+
+document
+.getElementById("status")
+.innerText="MIDI準備完了";
+}
+});
+
+async function playMusic(){
+
+await Tone.start();
+
+if(mp3Audio){
+
+mp3Audio.play();
+
+document
+.getElementById("status")
+.innerText="MP3再生中";
+
+return;
+}
+
+if(midiData){
+
+midiData.tracks.forEach(track=>{
+
+track.notes.forEach(note=>{
+
+const id=setTimeout(()=>{
+
+synth.triggerAttackRelease(
+note.name,
+note.duration,
+Tone.now()
+);
+
+},note.time*1000);
+
+midiTimeouts.push(id);
+
+});
+});
+
+document
+.getElementById("status")
+.innerText="MIDI再生中";
+}
+}
+
+function stopMusic(){
+
+if(mp3Audio){
+
+mp3Audio.pause();
+
+mp3Audio.currentTime=0;
+}
+
+midiTimeouts.forEach(t=>clearTimeout(t));
+
+midiTimeouts=[];
+
+synth.releaseAll();
+
+document
+.getElementById("status")
+.innerText="停止";
+}
+
+function toggleChaos(){
+
+chaos=!chaos;
+
+if(chaos){
+
+document.body.classList.add("glitch");
+
+chaosLoop=setInterval(()=>{
+
+makeWindows();
+
+},300);
+
+}else{
+
+document.body.classList.remove("glitch");
+
+clearInterval(chaosLoop);
+}
+}
+
+function toggleCRT(){
+document.body.classList.toggle("crt");
+}
+
+function toggleRotate(){
+document.body.classList.toggle("rotate");
+}
+
+function toggleNoise(){
+
+const n=document.getElementById("noise");
+
+n.style.display=
+n.style.display==="block"
+?
+"none"
+:
+"block";
+}
+
+function makeWindows(){
+
+const w=document.createElement("div");
+
+w.className="fake-window";
+
+// スクロール分を考慮せず、見えている画面内（クライアント領域）に収まるように配置
+w.style.left=
+Math.random()*
+(window.innerWidth-200)
++"px";
+
+w.style.top=
+Math.random()*
+(window.innerHeight-150)
++"px";
+
+w.innerHTML=
+`
+<div class="fake-title">
+にゃ.exe
+</div>
+
+<div class="fake-content">
+バグ発生😸
+</div>
+`;
+
+document.body.appendChild(w);
+
+// DOMに追加した後にドラッグイベントをバインド
+dragElement(w);
+}
+
+function popupMode(){
+
+const msgs=[
+"ﾆｬｱｱｱ",
+"ChromeOS感",
+"😸 ERROR",
+"RTX暇",
+"帝国"
+];
+
+for(let i=0;i<15;i++){
+
+const p=document.createElement("div");
+
+p.className="popup";
+
+p.innerText=
+msgs[
+Math.floor(Math.random()*msgs.length)
+];
+
+p.style.left=
+Math.random()*(window.innerWidth-100)
++"px";
+
+p.style.top=
+Math.random()*(window.innerHeight-50)
++"px";
+
+document.body.appendChild(p);
+
+setTimeout(()=>{
+p.remove();
+},3000);
+}
+}
+
+function fakeBSOD(){
+
+document
+.getElementById("bsod")
+.style.display="block";
+}
+
+function closeBSOD(){
+
+document
+.getElementById("bsod")
+.style.display="none";
+}
+
+function toggleDVD(){
+
+dvdMode=!dvdMode;
+
+const dvd=
+document.getElementById("dvd");
+
+if(dvdMode){
+
+dvd.style.display="flex";
+
+moveDVD();
+
+}else{
+
+dvd.style.display="none";
+}
+}
+
+function moveDVD(){
+
+const dvd=
+document.getElementById("dvd");
+
+function update(){
+
+if(!dvdMode)return;
+
+dvdX+=dvdDX;
+dvdY+=dvdDY;
+
+if(
+dvdX<0
+||
+dvdX>window.innerWidth-140
+){
+
+dvdDX*=-1;
+
+dvd.style.background=
+`hsl(${Math.random()*360},100%,50%)`;
+}
+
+if(
+dvdY<0
+||
+dvdY>window.innerHeight-80
+){
+
+dvdDY*=-1;
+
+dvd.style.background=
+`hsl(${Math.random()*360},100%,50%)`;
+}
+
+dvd.style.left=dvdX+"px";
+dvd.style.top=dvdY+"px";
+
+requestAnimationFrame(update);
+}
+
+update();
+}
+
+function spawnNyaku(){
+
+const count=
+document.getElementById("spawnCount").value;
+
+for(let i=0;i<count;i++){
+
+const img=document.createElement("img");
+
+img.src=
+selectedImages[
+Math.floor(Math.random()*selectedImages.length)
+];
+
+img.className="bouncer";
+
+document.body.appendChild(img);
+
+moveNyaku(img);
+}
+}
+
+function moveNyaku(el){
+
+let x=Math.random()*(window.innerWidth-80);
+let y=Math.random()*(window.innerHeight-80);
+
+let dx=(Math.random()*6)+2;
+let dy=(Math.random()*6)+2;
+
+function update(){
+
+x+=dx;
+y+=dy;
+
+if(x<0||x>window.innerWidth-80){
+dx*=-1;
+}
+
+if(y<0||y>window.innerHeight-80){
+dy*=-1;
+}
+
+el.style.left=x+"px";
+el.style.top=y+"px";
+
+requestAnimationFrame(update);
+}
+
+update();
+}
+
+function toggleGravity(){
+
+gravity=!gravity;
+
+document
+.querySelectorAll(".box")
+.forEach((el,i)=>{
+
+if(gravity){
+
+setTimeout(()=>{
+// 画面の一番下（ヘッダー等の高さを考慮した位置）までダイナミックに落下させる
+const dropDistance = window.innerHeight - el.offsetTop - el.offsetHeight + window.scrollY;
+el.style.transform=
+`translateY(${Math.max(100, dropDistance)}px)
+rotate(${Math.random()*20-10}deg)`;
+
+},i*100);
+
+}else{
+
+el.style.transform=
+"translateY(0px) rotate(0deg)";
+}
+});
+}
+
+function clearAll(){
+
+document
+.querySelectorAll(
+".fake-window,.popup,.bouncer"
+)
+.forEach(e=>e.remove());
+
+document.body.classList.remove(
+"glitch",
+"rotate",
+"crt"
+);
+
+clearInterval(chaosLoop);
+chaos = false;
+
+document
+.getElementById("noise")
+.style.display="none";
+
+dvdMode=false;
+
+document
+.getElementById("dvd")
+.style.display="none";
+}
+
+function dragElement(el){
+
+let pos1=0,pos2=0,pos3=0,pos4=0;
+
+// タイトルバーだけでなくウィンドウ全体、あるいはタイトル部分でのドラッグをハンドリング
+const header = el.querySelector(".fake-title");
+if (header) {
+    header.onmousedown = dragMouseDown;
+} else {
+    el.onmousedown = dragMouseDown;
+}
+
+function dragMouseDown(e){
+
+e.preventDefault();
+
+pos3=e.clientX;
+pos4=e.clientY;
+
+document.onmouseup=closeDrag;
+
+document.onmousemove=drag;
+}
+
+function drag(e){
+
+e.preventDefault();
+
+pos1=pos3-e.clientX;
+pos2=pos4-e.clientY;
+
+pos3=e.clientX;
+pos4=e.clientY;
+
+el.style.top=
+(el.offsetTop-pos2)+"px";
+
+el.style.left=
+(el.offsetLeft-pos1)+"px";
+}
+
+function closeDrag(){
+
+document.onmouseup=null;
+document.onmousemove=null;
+}
+}
+
+document.addEventListener(
+"mousemove",
+(e)=>{
+
+if(Math.random()>0.12)return;
+
+const t=document.createElement("span");
+
+t.className="trail";
+
+t.innerText=
+words[
+Math.floor(Math.random()*words.length)
+];
+
+t.style.left=e.pageX+"px";
+t.style.top=e.pageY+"px";
+
+t.style.color=
+`hsl(${Math.random()*360},100%,50%)`;
+
+document.body.appendChild(t);
+
+setTimeout(()=>{
+t.remove();
+},1000);
+});
+
+console.log("🌈 にゃくOS 起動");
+console.log("❌ WALL.exe 削除済み");
+</script>
+
+</body>
+</html>
